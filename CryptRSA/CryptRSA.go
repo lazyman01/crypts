@@ -1,6 +1,8 @@
 package CryptRSA
 
 import (
+	"crypto"
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -75,9 +77,48 @@ func RsaDecrypt(ciphertext []byte) ([]byte, error) {
 	return rsa.DecryptPKCS1v15(rand.Reader, priv, ciphertext)
 }
 
-func main() {
-	data, _ := RsaEncrypt([]byte("hello world"))
-	fmt.Println(base64.StdEncoding.EncodeToString(data))
-	origData, _ := RsaDecrypt(data)
-	fmt.Println(string(origData))
+//RSA公钥私钥生成和使用
+func GenKey()  {
+	//RSA首先生成的是私钥，然后根据私钥生成公钥
+	//生成1024位私钥
+	pri,_:=rsa.GenerateKey(rand.Reader,2048)
+	//根据私钥产生公钥
+	pub:=&pri.PublicKey
+	fmt.Println("私钥",pri)
+	fmt.Println("公钥",pub)
+	//定义明文
+	plaintext:=[]byte("hello china")
+	//加密成密文,OAEP补码
+	ciphertext,_:=rsa.EncryptOAEP(md5.New(),rand.Reader,pub,plaintext,nil)
+	fmt.Println(base64.StdEncoding.EncodeToString(ciphertext))
+
+	//解密
+	plaintext,_=rsa.DecryptOAEP(md5.New(),rand.Reader,pri,ciphertext,nil)
+	fmt.Println(string(plaintext))
+}
+
+//RSA签名和验签
+func RSAVerify()  {
+	//生成私钥
+	priv,_:=rsa.GenerateKey(rand.Reader,1024)
+	//产生公钥
+	pub:=&priv.PublicKey
+	//设置明文
+	plaintext:=[]byte("hello world")
+	//给明文做哈希散列
+	h:=md5.New()
+	h.Write(plaintext)
+	hashed:=h.Sum(nil)
+	//签名
+	opts:=&rsa.PSSOptions{SaltLength:rsa.PSSSaltLengthAuto,Hash:crypto.MD5}
+	sign,_:=rsa.SignPSS(rand.Reader,priv,crypto.MD5,hashed,opts)
+
+
+	//认证
+	e:=rsa.VerifyPSS(pub,crypto.MD5,hashed,sign,opts,)
+	if e==nil{
+		fmt.Println("验证成功")
+	}else {
+		fmt.Println("验证失败")
+	}
 }

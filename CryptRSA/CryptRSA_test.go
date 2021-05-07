@@ -16,3 +16,11 @@ func TestRsaDecrypt(t *testing.T) {
 	origData, _ := RsaDecrypt(data)
 	fmt.Println(string(origData))
 }
+
+func TestGenKey(t *testing.T) {
+	GenKey()
+}
+
+func TestRSAVerify(t *testing.T) {
+	RSAVerify()
+}
