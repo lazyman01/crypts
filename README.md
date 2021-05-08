@@ -12,7 +12,7 @@ MD5
 RC4  
 SHA256  
 SHA512  
-
+Base58
 
 
 
